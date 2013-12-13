@@ -1,4 +1,4 @@
-package com.github.redisscheduler;
+package com.github.davidmarquis.redisscheduler;
 
 import java.util.Calendar;
 

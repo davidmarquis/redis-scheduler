@@ -1,7 +1,7 @@
-package com.github.redisscheduler.impl;
+package com.github.davidmarquis.redisscheduler.impl;
 
-import com.github.redisscheduler.RedisTaskScheduler;
-import com.github.redisscheduler.TaskTriggerListener;
+import com.github.davidmarquis.redisscheduler.RedisTaskScheduler;
+import com.github.davidmarquis.redisscheduler.TaskTriggerListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;

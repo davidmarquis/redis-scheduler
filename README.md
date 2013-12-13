@@ -49,7 +49,7 @@ and upload the resulting JAR in your own Maven repository.
 
 ``` xml
     <dependency>
-        <groupId>com.github</groupId>
+        <groupId>com.github.davidmarquis</groupId>
         <artifactId>redis-scheduler</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </dependency>
@@ -80,7 +80,7 @@ for your project. `redis-scheduler` only needs a functional RedisTemplate instan
 Finally, declare the scheduler instance:
 
 ``` xml
-    <bean id="scheduler" class="com.github.redisscheduler.impl.RedisTaskSchedulerImpl">
+    <bean id="scheduler" class="com.github.davidmarquis.redisscheduler.impl.RedisTaskSchedulerImpl">
         <property name="redisTemplate" ref="redisTemplate"/>
         <property name="taskTriggerListener">
             <bean class="your.own.implementation.of.TaskTriggerListener"/>
@@ -126,7 +126,7 @@ By default, polling delay is set to a few seconds (see implementation `RedisTask
 you need your tasks to be triggered with more precision, decrease the polling delay using the `pollingDelayMillis` attribute of `RedisTaskSchedulerImpl`:
 
 ``` xml
-    <bean id="scheduler" class="com.github.redisscheduler.impl.RedisTaskSchedulerImpl">
+    <bean id="scheduler" class="com.github.davidmarquis.redisscheduler.impl.RedisTaskSchedulerImpl">
         <property name="pollingDelayMillis" value="500"/>
     </bean>
 ```
@@ -140,7 +140,7 @@ Retry polling when a Redis connection error happens
 Retries can be configured using the `maxRetriesOnConnectionFailure` property on `RedisTaskSchedulerImpl`:
 
 ``` xml
-    <bean id="scheduler" class="com.github.redisscheduler.impl.RedisTaskSchedulerImpl">
+    <bean id="scheduler" class="com.github.davidmarquis.redisscheduler.impl.RedisTaskSchedulerImpl">
         <property name="maxRetriesOnConnectionFailure" value="5"/>
     </bean>
 ```

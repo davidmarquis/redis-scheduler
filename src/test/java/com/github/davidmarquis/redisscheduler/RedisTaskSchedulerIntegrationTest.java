@@ -1,8 +1,8 @@
-package com.github.redisscheduler;
+package com.github.davidmarquis.redisscheduler;
 
 
-import com.github.redisscheduler.impl.LatchedTriggerListener;
-import com.github.redisscheduler.impl.StubbedClock;
+import com.github.davidmarquis.redisscheduler.impl.LatchedTriggerListener;
+import com.github.davidmarquis.redisscheduler.impl.StubbedClock;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

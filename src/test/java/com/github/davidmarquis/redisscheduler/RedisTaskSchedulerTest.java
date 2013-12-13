@@ -1,6 +1,6 @@
-package com.github.redisscheduler;
+package com.github.davidmarquis.redisscheduler;
 
-import com.github.redisscheduler.impl.RedisTaskSchedulerImpl;
+import com.github.davidmarquis.redisscheduler.impl.RedisTaskSchedulerImpl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

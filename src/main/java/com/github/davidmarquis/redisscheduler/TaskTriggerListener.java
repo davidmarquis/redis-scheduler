@@ -1,4 +1,4 @@
-package com.github.redisscheduler;
+package com.github.davidmarquis.redisscheduler;
 
 /**
  * Callback interface that will get executed when a previously-scheduled task is due for execution.

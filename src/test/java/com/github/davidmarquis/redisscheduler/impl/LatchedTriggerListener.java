@@ -1,6 +1,6 @@
-package com.github.redisscheduler.impl;
+package com.github.davidmarquis.redisscheduler.impl;
 
-import com.github.redisscheduler.TaskTriggerListener;
+import com.github.davidmarquis.redisscheduler.TaskTriggerListener;
 
 import java.util.ArrayList;
 import java.util.List;
