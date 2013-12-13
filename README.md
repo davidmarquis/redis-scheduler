@@ -34,8 +34,18 @@ This is the main interface you must implement to actually run the tasks once the
 call the `taskTriggered` method for each task that is due for execution.
 
 
+Building the project
+--------------------
+
+``` bash
+    mvn package
+```
+
 Maven dependency
 ----------------
+
+Note: This artifact is NOT published on Maven Central. For now, you'll have to build the JAR yourself (see above)
+and upload the resulting JAR in your own Maven repository.
 
 ``` xml
     <dependency>
@@ -67,16 +77,21 @@ for your project. `redis-scheduler` only needs a functional RedisTemplate instan
     </bean>
 ```
 
-Then declare a scheduler:
+Finally, declare the scheduler instance:
 
 ``` xml
-    <bean id="scheduler" class="com.github.redisscheduler.impl.RedisTaskSchedulerImpl" />
+    <bean id="scheduler" class="com.github.redisscheduler.impl.RedisTaskSchedulerImpl">
+        <property name="redisTemplate" ref="redisTemplate"/>
+        <property name="taskTriggerListener">
+            <bean class="your.own.implementation.of.TaskTriggerListener"/>
+        </property>
+    </bean>
 ```
 
-`RedisTaskSchedulerImpl` expects an implementation of the `TaskTriggerListener` interface to be available in your Spring
-context. You must implement this interface and instantiate it in your own Spring context.
+As noted above, `RedisTaskSchedulerImpl` expects an implementation of the `TaskTriggerListener` interface
+to notify your code when a task is due for execution. You must implement this interface yourself.
 
-See the the test Spring context in `test/resources/application-context-test.xml` for an example of the setup.
+See the the test Spring context in `test/resources/application-context-test.xml` for a complete example of the setup.
 
 
 Scheduling a task in the future
@@ -88,8 +103,10 @@ Scheduling a task in the future
 
     ...
 
-    scheduler.schedule("mytask", new GregorianCalendar(2013, 1, 1));
+    scheduler.schedule("mytask", new GregorianCalendar(2015, Calendar.JANUARY, 1, 4, 45, 0));
 ```
+
+This would schedule a task with ID "mytask" to be run at 4:45AM on January 1st 2015.
 
 Be notified once a task is due for execution
 --------------------------------------------
@@ -101,8 +118,6 @@ public class MyTaskTriggerListener implements TaskTriggerListener {
     }
 }
 ```
-
-Then instantiate this class in your Spring context and it'll be used by the scheduler.
 
 Customizing polling delay
 ----------------------------------
@@ -116,7 +131,8 @@ you need your tasks to be triggered with more precision, decrease the polling de
     </bean>
 ```
 
-Increasing polling delay comes with a cost: higher load on Redis and your connection. Try to find the best balance for your needs.
+Increasing polling delay comes with a cost: higher load on Redis and your connection.
+Try to find the best balance for your needs.
 
 Retry polling when a Redis connection error happens
 ---------------------------------------------------
