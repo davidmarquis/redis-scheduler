@@ -44,14 +44,13 @@ Building the project
 Maven dependency
 ----------------
 
-Note: This artifact is NOT published on Maven Central. For now, you'll have to build the JAR yourself (see above)
-and upload the resulting JAR in your own Maven repository.
+This artifact is published on Maven Central since version 2.0.0:
 
 ``` xml
     <dependency>
         <groupId>com.github.davidmarquis</groupId>
         <artifactId>redis-scheduler</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>2.0.0</version>
     </dependency>
 ```
 
