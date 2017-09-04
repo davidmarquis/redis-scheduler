@@ -41,7 +41,7 @@ public class RedisTaskSchedulerTest {
     }
 
     @Test
-    public void can_retry_after_redis_connection_error() throws InterruptedException {
+    public void canRetryAfterRedisConnectionError() throws InterruptedException {
 
         // given
         doThrow(RedisConnectionFailureException.class).when(redisTemplate).execute(any(SessionCallback.class));
@@ -55,7 +55,7 @@ public class RedisTaskSchedulerTest {
     }
 
     @Test
-    public void can_recover_after_single_connection_error() throws InterruptedException {
+    public void canRecoverAfterSingleConnectionError() throws InterruptedException {
 
         // given
         when(redisTemplate.execute(any(SessionCallback.class)))

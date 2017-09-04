@@ -11,6 +11,9 @@ import org.springframework.data.redis.core.*;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Set;
 
@@ -21,7 +24,7 @@ public class RedisTaskSchedulerImpl implements RedisTaskScheduler {
     private static final String SCHEDULE_KEY = "redis-scheduler.%s";
     private static final String DEFAULT_SCHEDULER_NAME = "scheduler";
 
-    private Clock clock = new StandardClock();
+    private Clock clock = Clock.systemDefaultZone();
     private RedisTemplate redisTemplate;
     private TaskTriggerListener taskTriggerListener;
 
@@ -39,14 +42,18 @@ public class RedisTaskSchedulerImpl implements RedisTaskScheduler {
     private PollingThread pollingThread;
     private int maxRetriesOnConnectionFailure = 1;
 
-    @Override
     @SuppressWarnings("unchecked")
-    public void schedule(String taskId, Calendar triggerTime) {
+    public void runNow(String taskId) {
+        scheduleAt(taskId, clock.instant());
+    }
+
+    @SuppressWarnings("unchecked")
+    public void scheduleAt(String taskId, Instant triggerTime) {
         if (triggerTime == null) {
-            triggerTime = clock.now();
+            throw new IllegalArgumentException("A trigger time must be provided.");
         }
 
-        redisTemplate.opsForZSet().add(keyForScheduler(), taskId, triggerTime.getTimeInMillis());
+        redisTemplate.opsForZSet().add(keyForScheduler(), taskId, triggerTime.toEpochMilli());
     }
 
     @Override
@@ -154,7 +161,7 @@ public class RedisTaskSchedulerImpl implements RedisTaskScheduler {
     @SuppressWarnings("unchecked")
     private String findFirstTaskDueForExecution(RedisOperations ops) {
         final long minScore = 0;
-        final long maxScore = clock.now().getTimeInMillis();
+        final long maxScore = clock.millis();
 
         // we unfortunately need to go wild here, the default API does not allow us to limit the number
         // of items returned by the ZRANGEBYSCORE operation.

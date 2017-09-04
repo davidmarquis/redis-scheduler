@@ -1,48 +1,44 @@
 package com.github.davidmarquis.redisscheduler.impl;
 
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.TimeUnit;
 
-public class StubbedClock implements Clock {
+public class StubbedClock extends Clock {
 
-    private static final DateFormat DATETIME_PARSER = new SimpleDateFormat("yyyyMMdd HH:mm");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd HH:mm");
 
-    private Calendar now = new GregorianCalendar();
+    private Instant now = Instant.now();
 
-    @Override
-    public Calendar now() {
+    public Instant instant() {
         return now;
     }
 
     public void is(String dateTimeStr) throws ParseException {
-        Calendar stubbedTime = Calendar.getInstance();
-        stubbedTime.setTime(DATETIME_PARSER.parse(dateTimeStr));
-
-        stubTime(stubbedTime);
+        LocalDateTime time = LocalDateTime.parse(dateTimeStr, FORMATTER);
+        stubTime(time.toInstant(ZoneOffset.UTC));
     }
 
     public void fastForward(int period, TimeUnit unit) {
         stubTime(in(period, unit));
     }
 
-    public Calendar in(int period, TimeUnit unit) {
-        long currentTime = now.getTimeInMillis();
+    public Instant in(int period, TimeUnit unit) {
+        long currentTime = now.toEpochMilli();
         long newTime = currentTime + (unit.toMillis(period));
-
-        return fromMillis(newTime);
+        return Instant.ofEpochMilli(newTime);
     }
 
-    public static Calendar fromMillis(long millis) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTimeInMillis(millis);
-        return cal;
-    }
-
-    private void stubTime(Calendar stubbedTime) {
+    private void stubTime(Instant stubbedTime) {
         now = stubbedTime;
+    }
+
+    public ZoneId getZone() {
+        return null;  // not used
+    }
+
+    public Clock withZone(ZoneId zone) {
+        return null;  // not used
     }
 }

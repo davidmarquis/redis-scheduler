@@ -37,13 +37,13 @@ public class RedisTaskSchedulerIntegrationTest {
     }
 
     @Test
-    public void can_trigger_task() throws ParseException, InterruptedException {
+    public void canTriggerTask() throws ParseException, InterruptedException {
 
         // given
         clock.is("20131101 10:00");
 
         // when
-        scheduler.schedule("mytask", clock.in(2, HOURS));
+        scheduler.scheduleAt("mytask", clock.in(2, HOURS));
         clock.fastForward(2, HOURS);
 
         // then
@@ -51,14 +51,14 @@ public class RedisTaskSchedulerIntegrationTest {
     }
 
     @Test
-    public void can_trigger_multiple_tasks() throws ParseException, InterruptedException {
+    public void canTriggerMultipleTasks() throws ParseException, InterruptedException {
 
         // given
         clock.is("20131101 10:00");
 
         // when
-        scheduler.schedule("mytask1", clock.in(1, HOURS));
-        scheduler.schedule("mytask2", clock.in(2, HOURS));
+        scheduler.scheduleAt("mytask1", clock.in(1, HOURS));
+        scheduler.scheduleAt("mytask2", clock.in(2, HOURS));
         clock.fastForward(2, HOURS);
 
         // then
@@ -66,15 +66,15 @@ public class RedisTaskSchedulerIntegrationTest {
     }
 
     @Test
-    public void can_trigger_past_tasks() throws ParseException, InterruptedException {
+    public void canTriggerPastTasks() throws ParseException, InterruptedException {
 
         // given
         clock.is("20131101 10:00");
 
         // when
-        scheduler.schedule("mytask1", clock.in(1, HOURS));
-        scheduler.schedule("mytask2", clock.in(2, HOURS));
-        scheduler.schedule("mytask3", clock.in(5, HOURS));
+        scheduler.scheduleAt("mytask1", clock.in(1, HOURS));
+        scheduler.scheduleAt("mytask2", clock.in(2, HOURS));
+        scheduler.scheduleAt("mytask3", clock.in(5, HOURS));
         clock.fastForward(3, HOURS);
 
         // then
@@ -82,52 +82,58 @@ public class RedisTaskSchedulerIntegrationTest {
     }
 
     @Test
-    public void cannot_trigger_future_tasks() throws ParseException, InterruptedException {
+    public void cannotTriggerFutureTasks() throws ParseException, InterruptedException {
 
         // given
         clock.is("20131101 10:00");
 
         // when
-        scheduler.schedule("mytask", clock.in(1, HOURS));
+        scheduler.scheduleAt("mytask", clock.in(1, HOURS));
 
         // then
         assertNoTaskTriggered();
     }
 
     @Test
-    public void can_schedule_in_the_past() throws ParseException, InterruptedException {
+    public void canScheduleInThePast() throws ParseException, InterruptedException {
         // given
         clock.is("20131101 10:00");
 
         // when
-        scheduler.schedule("mytask", clock.in(-1, HOURS));
+        scheduler.scheduleAt("mytask", clock.in(-1, HOURS));
+
+        // then
+        assertTasksTriggered("mytask");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void schedulingAtNullTimeRaisesException() throws ParseException, InterruptedException {
+        // when
+        scheduler.scheduleAt("mytask", null);
+    }
+
+    @Test
+    public void runNowImmediatelyTriggers() throws ParseException, InterruptedException {
+
+        // given
+        clock.is("20131101 10:00");
+
+        // when
+        scheduler.runNow("mytask");
 
         // then
         assertTasksTriggered("mytask");
     }
 
     @Test
-    public void scheduling_with_no_time_trigger_immediately_triggers() throws ParseException, InterruptedException {
+    public void canRescheduleTask() throws ParseException, InterruptedException {
 
         // given
         clock.is("20131101 10:00");
 
         // when
-        scheduler.schedule("mytask", null);
-
-        // then
-        assertTasksTriggered("mytask");
-    }
-
-    @Test
-    public void can_reschedule_task() throws ParseException, InterruptedException {
-
-        // given
-        clock.is("20131101 10:00");
-
-        // when
-        scheduler.schedule("mytask", clock.in(5, HOURS));
-        scheduler.schedule("mytask", clock.in(1, HOURS));
+        scheduler.scheduleAt("mytask", clock.in(5, HOURS));
+        scheduler.scheduleAt("mytask", clock.in(1, HOURS));
         clock.fastForward(2, HOURS);
 
         // then
@@ -135,14 +141,14 @@ public class RedisTaskSchedulerIntegrationTest {
     }
 
     @Test
-    public void can_unschedule_task() throws ParseException, InterruptedException {
+    public void canUnscheduleTask() throws ParseException, InterruptedException {
 
         // given
         clock.is("20131101 10:00");
 
         // when
-        scheduler.schedule("mytask1", clock.in(1, HOURS));
-        scheduler.schedule("mytask2", clock.in(1, HOURS));
+        scheduler.scheduleAt("mytask1", clock.in(1, HOURS));
+        scheduler.scheduleAt("mytask2", clock.in(1, HOURS));
         scheduler.unschedule("mytask2");
         clock.fastForward(2, HOURS);
 
