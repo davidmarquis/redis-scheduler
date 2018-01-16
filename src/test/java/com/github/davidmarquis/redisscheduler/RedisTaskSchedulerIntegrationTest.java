@@ -14,6 +14,7 @@ import java.text.ParseException;
 
 import static java.util.Arrays.asList;
 import static java.util.concurrent.TimeUnit.HOURS;
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -161,7 +162,7 @@ public class RedisTaskSchedulerIntegrationTest {
         taskTriggerListener.waitUntilTriggered(tasks.length, 1000);
 
         assertThat("Triggered tasks count", taskTriggerListener.getTriggeredTasks().size(), is(tasks.length));
-        assertThat("Triggered tasks", taskTriggerListener.getTriggeredTasks(), is(asList(tasks)));
+        assertThat("Triggered tasks", taskTriggerListener.getTriggeredTasks(), hasItems(tasks));
     }
 
     private void assertOnlyTasksTriggered(String... tasks) throws InterruptedException {
