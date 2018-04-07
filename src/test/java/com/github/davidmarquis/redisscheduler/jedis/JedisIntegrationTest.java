@@ -1,20 +1,19 @@
-package com.github.davidmarquis.redisscheduler.lettuce;
+package com.github.davidmarquis.redisscheduler.jedis;
 
 import com.github.davidmarquis.redisscheduler.AcceptanceTestSuite;
 import com.github.davidmarquis.redisscheduler.RedisTaskScheduler;
-import com.github.davidmarquis.redisscheduler.drivers.lettuce.LettuceDriver;
-import io.lettuce.core.RedisClient;
-import io.lettuce.core.RedisURI;
+import com.github.davidmarquis.redisscheduler.drivers.jedis.JedisDriver;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import redis.clients.jedis.JedisPool;
 import redis.embedded.RedisServer;
 
 import java.io.IOException;
 
-public class LettuceIntegrationTest extends AcceptanceTestSuite {
+public class JedisIntegrationTest extends AcceptanceTestSuite {
 
-    private static final RedisClient client = RedisClient.create(RedisURI.create("localhost", 6379));
+    private static final JedisPool pool = new JedisPool("localhost", 6379);
 
     private static RedisServer server;
 
@@ -26,7 +25,7 @@ public class LettuceIntegrationTest extends AcceptanceTestSuite {
 
     @Override
     protected void provideDependencies() {
-        RedisTaskScheduler redisScheduler = new RedisTaskScheduler(new LettuceDriver(client), taskTriggerListener);
+        RedisTaskScheduler redisScheduler = new RedisTaskScheduler(new JedisDriver(pool), taskTriggerListener);
         redisScheduler.setClock(clock);
         redisScheduler.setPollingDelayMillis(50);
         redisScheduler.initialize();
@@ -41,7 +40,7 @@ public class LettuceIntegrationTest extends AcceptanceTestSuite {
 
     @AfterClass
     public static void shutdown() {
-        client.shutdown();
+        pool.close();
         server.stop();
     }
 }

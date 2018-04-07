@@ -1,7 +1,7 @@
 package com.github.davidmarquis.redisscheduler.spring;
 
 
-import com.github.davidmarquis.redisscheduler.AcceptanceTestBase;
+import com.github.davidmarquis.redisscheduler.AcceptanceTestSuite;
 import com.github.davidmarquis.redisscheduler.TaskScheduler;
 import com.github.davidmarquis.redisscheduler.LatchedTriggerListener;
 import com.github.davidmarquis.redisscheduler.StubbedClock;
@@ -13,7 +13,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("/application-context-test.xml")
-public class SpringIntegrationTest extends AcceptanceTestBase {
+public class SpringIntegrationTest extends AcceptanceTestSuite {
 
     @Autowired
     private ApplicationContext ctx;

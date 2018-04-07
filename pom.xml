@@ -51,6 +51,21 @@
     </properties>
 
     <dependencies>
+        <!-- Lettuce driver -->
+        <dependency>
+            <groupId>io.lettuce</groupId>
+            <artifactId>lettuce-core</artifactId>
+            <version>5.0.3.RELEASE</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Jedis driver -->
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>2.9.0</version>
+            <scope>provided</scope>
+        </dependency>
 
         <!-- Spring Data Redis driver -->
         <dependency>
@@ -66,12 +81,6 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-            <version>2.9.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
             <version>4.3.15.RELEASE</version>
@@ -82,14 +91,6 @@
             <artifactId>spring-test</artifactId>
             <version>4.3.15.RELEASE</version>
             <scope>test</scope>
-        </dependency>
-
-        <!-- Lettuce driver -->
-        <dependency>
-            <groupId>io.lettuce</groupId>
-            <artifactId>lettuce-core</artifactId>
-            <version>5.0.3.RELEASE</version>
-            <scope>provided</scope>
         </dependency>
 
         <!-- Tests -->

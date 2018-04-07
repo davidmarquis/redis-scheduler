@@ -11,7 +11,7 @@ import static java.util.concurrent.TimeUnit.HOURS;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public abstract class AcceptanceTestBase {
+public abstract class AcceptanceTestSuite {
 
     protected TaskScheduler scheduler;
     protected StubbedClock clock = new StubbedClock();
