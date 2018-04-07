@@ -9,11 +9,10 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.Optional;
 
-public class RedisTaskScheduler implements TaskScheduler {
+public class RedisTaskScheduler implements TaskScheduler, TaskRunner {
 
-    private static final Logger log = LoggerFactory.getLogger(RedisTaskScheduler.class);
+    private static final Logger log = LoggerFactory.getLogger(TaskScheduler.class);
 
-    private static final String SCHEDULE_KEY = "redis-scheduler.%s";
     private static final String DEFAULT_SCHEDULER_NAME = "scheduler";
 
     private Clock clock = Clock.systemDefaultZone();
@@ -21,17 +20,16 @@ public class RedisTaskScheduler implements TaskScheduler {
     private TaskTriggerListener listener;
 
     /**
+     * If you need multiple schedulers for the same application, customize their names to differentiate in logs.
+     */
+    private SchedulerIdentity identity = SchedulerIdentity.of(DEFAULT_SCHEDULER_NAME);
+
+    private PollingThread pollingThread;
+    /**
      * Delay between each polling of the scheduled tasks. The lower the value, the best precision in triggering tasks.
      * However, the lower the value, the higher the load on Redis.
      */
     private int pollingDelayMillis = 10000;
-
-    /**
-     * If you need multiple schedulers for the same application, customize their names to differentiate in logs.
-     */
-    private String schedulerName = DEFAULT_SCHEDULER_NAME;
-
-    private PollingThread pollingThread;
     private int maxRetriesOnConnectionFailure = 1;
 
     public RedisTaskScheduler(RedisDriver driver, TaskTriggerListener listener) {
@@ -50,19 +48,19 @@ public class RedisTaskScheduler implements TaskScheduler {
             throw new IllegalArgumentException("A trigger time must be provided.");
         }
 
-        driver.execute(commands -> commands.addToSetWithScore(keyForScheduler(), taskId, triggerTime.toEpochMilli()));
+        driver.execute(commands -> commands.addToSetWithScore(identity.key(), taskId, triggerTime.toEpochMilli()));
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void unschedule(String taskId) {
-        driver.execute(commands -> commands.removeFromSet(keyForScheduler(), taskId));
+        driver.execute(commands -> commands.removeFromSet(identity.key(), taskId));
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void unscheduleAllTasks() {
-        driver.execute(commands -> commands.remove(keyForScheduler()));
+        driver.execute(commands -> commands.remove(identity.key()));
     }
 
     @Override
@@ -75,12 +73,12 @@ public class RedisTaskScheduler implements TaskScheduler {
 
     @PostConstruct
     public void initialize() {
-        pollingThread = new PollingThread();
-        pollingThread.setName(schedulerName + "-polling");
+        pollingThread = new PollingThread(this, maxRetriesOnConnectionFailure, pollingDelayMillis);
+        pollingThread.setName(identity.name() + "-polling");
 
         pollingThread.start();
 
-        log.info(String.format("[%s] Started Redis Scheduler (polling freq: [%sms])", schedulerName, pollingDelayMillis));
+        log.info(String.format("[%s] Started Redis Scheduler (polling freq: [%sms])", identity.name(), pollingDelayMillis));
     }
 
     public void setClock(Clock clock) {
@@ -88,7 +86,7 @@ public class RedisTaskScheduler implements TaskScheduler {
     }
 
     public void setSchedulerName(String schedulerName) {
-        this.schedulerName = schedulerName;
+        this.identity = SchedulerIdentity.of(schedulerName);
     }
 
     public void setPollingDelayMillis(int pollingDelayMillis) {
@@ -99,36 +97,30 @@ public class RedisTaskScheduler implements TaskScheduler {
         this.maxRetriesOnConnectionFailure = maxRetriesOnConnectionFailure;
     }
 
-    private String keyForScheduler() {
-        return String.format(SCHEDULE_KEY, schedulerName);
-    }
-
     @SuppressWarnings("unchecked")
-    private boolean triggerNextTaskIfFound() {
-
+    public boolean triggerNextTaskIfFound() {
         return driver.fetch(commands -> {
             boolean taskWasTriggered = false;
-            final String key = keyForScheduler();
 
-            commands.watch(key);
+            commands.watch(identity.key());
 
-            Optional<String> nextTask = commands.firstByScore(keyForScheduler(), 0, clock.millis());
+            Optional<String> nextTask = commands.firstByScore(identity.key(), 0, clock.millis());
 
             if (nextTask.isPresent()) {
                 String nextTaskId = nextTask.get();
 
                 commands.multi();
-                commands.removeFromSet(key, nextTaskId);
+                commands.removeFromSet(identity.key(), nextTaskId);
                 boolean executionSuccess = commands.exec();
 
                 if (executionSuccess) {
-                    log.debug(String.format("[%s] Triggering execution of task [%s]", schedulerName, nextTaskId));
+                    log.debug(String.format("[%s] Triggering execution of task [%s]", identity.name(), nextTaskId));
 
                     tryTaskExecution(nextTaskId);
                     taskWasTriggered = true;
                 } else {
                     log.warn(String.format("[%s] Race condition detected for triggering of task [%s]. " +
-                                                   "The task has probably been triggered by another instance of this application.", schedulerName, nextTaskId));
+                                                   "The task has probably been triggered by another instance of this application.", identity.name(), nextTaskId));
                 }
             } else {
                 commands.unwatch();
@@ -142,70 +134,7 @@ public class RedisTaskScheduler implements TaskScheduler {
         try {
             listener.taskTriggered(task);
         } catch (Exception e) {
-            log.error(String.format("[%s] Error during execution of task [%s]", schedulerName, task), e);
-        }
-    }
-
-    private class PollingThread extends Thread {
-        private boolean stopRequested = false;
-        private int numRetriesAttempted = 0;
-
-        public void requestStop() {
-            stopRequested = true;
-        }
-
-        @Override
-        public void run() {
-            try {
-                while (!stopRequested && !isMaxRetriesAttemptsReached()) {
-
-                    try {
-                        attemptTriggerNextTask();
-                    } catch (InterruptedException e) {
-                        break;
-                    }
-                }
-            } catch (Exception e) {
-                log.error(String.format(
-                        "[%s] Error while polling scheduled tasks. " +
-                                "No additional scheduled task will be triggered until the application is restarted.", schedulerName), e);
-            }
-
-            if (isMaxRetriesAttemptsReached()) {
-                log.error(String.format("[%s] Maximum number of retries (%s) after Redis connection failure has been reached. " +
-                                                "No additional scheduled task will be triggered until the application is restarted.", schedulerName, maxRetriesOnConnectionFailure));
-            } else {
-                log.info("[%s] Redis Scheduler stopped");
-            }
-        }
-
-        private void attemptTriggerNextTask() throws InterruptedException {
-            try {
-                boolean taskTriggered = triggerNextTaskIfFound();
-
-                // if a task was triggered, we'll try again immediately. This will help to speed up the execution
-                // process if a few tasks were due for execution.
-                if (!taskTriggered) {
-                    sleep(pollingDelayMillis);
-                }
-
-                resetRetriesAttemptsCount();
-            } catch (RedisConnectException e) {
-                incrementRetriesAttemptsCount();
-                log.warn(String.format("Connection failure during scheduler polling (attempt %s/%s)", numRetriesAttempted, maxRetriesOnConnectionFailure));
-            }
-        }
-
-        private boolean isMaxRetriesAttemptsReached() {
-            return numRetriesAttempted >= maxRetriesOnConnectionFailure;
-        }
-
-        private void resetRetriesAttemptsCount() {
-            numRetriesAttempted = 0;
-        }
-
-        private void incrementRetriesAttemptsCount() {
-            numRetriesAttempted++;
+            log.error(String.format("[%s] Error during execution of task [%s]", identity.name(), task), e);
         }
     }
 }
