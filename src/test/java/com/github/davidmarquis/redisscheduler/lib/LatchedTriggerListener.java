@@ -1,4 +1,4 @@
-package com.github.davidmarquis.redisscheduler.impl;
+package com.github.davidmarquis.redisscheduler.lib;
 
 import com.github.davidmarquis.redisscheduler.TaskTriggerListener;
 
@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit;
 public class LatchedTriggerListener implements TaskTriggerListener {
 
     private CountDownLatch latch;
-
     private List<String> triggeredTasks = new ArrayList<String>();
 
     @Override
@@ -30,7 +29,7 @@ public class LatchedTriggerListener implements TaskTriggerListener {
         return triggeredTasks;
     }
 
-    public void waitUntilTriggered(int nTimes, int timeoutMillis) throws InterruptedException {
+    public void waitUntilTriggeredCount(int nTimes, int timeoutMillis) throws InterruptedException {
         int remainingCount = nTimes - triggeredTasks.size();
         if (remainingCount < 1) {
             return;

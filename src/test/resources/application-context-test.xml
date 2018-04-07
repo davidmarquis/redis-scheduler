@@ -21,16 +21,19 @@
         </property>
     </bean>
 
-    <bean id="triggerListener" class="com.github.davidmarquis.redisscheduler.impl.LatchedTriggerListener"/>
+    <bean id="triggerListener" class="com.github.davidmarquis.redisscheduler.lib.LatchedTriggerListener"/>
 
-    <bean id="stubbedClock" class="com.github.davidmarquis.redisscheduler.impl.StubbedClock" />
+    <bean id="stubbedClock" class="com.github.davidmarquis.redisscheduler.lib.StubbedClock" />
 
-    <bean id="scheduler" class="com.github.davidmarquis.redisscheduler.impl.RedisTaskSchedulerImpl">
-        <!-- Speed up the polling for tests so that they run quickly. -->
-        <property name="pollingDelayMillis" value="50"/>
+    <bean id="springTemplateDriver" class="com.github.davidmarquis.redisscheduler.drivers.springdata.SpringTemplateDriver">
+        <constructor-arg name="redisTemplate" ref="redisTemplate"/>
+    </bean>
+
+    <bean id="scheduler" class="com.github.davidmarquis.redisscheduler.RedisTaskScheduler" >
+        <constructor-arg name="driver" ref="springTemplateDriver"/>
+        <constructor-arg name="taskTriggerListener" ref="triggerListener"/>
         <property name="clock" ref="stubbedClock"/>
-        <property name="redisTemplate" ref="redisTemplate"/>
-        <property name="taskTriggerListener" ref="triggerListener"/>
+        <property name="pollingDelayMillis" value="50"/>  <!-- Speeds up polling for tests so that they run quicker. -->
     </bean>
 
 </beans>

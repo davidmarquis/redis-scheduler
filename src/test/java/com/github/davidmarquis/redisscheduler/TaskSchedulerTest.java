@@ -1,16 +1,17 @@
 package com.github.davidmarquis.redisscheduler;
 
-import com.github.davidmarquis.redisscheduler.impl.RedisTaskSchedulerImpl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
+
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -20,17 +21,20 @@ import static org.mockito.internal.verification.VerificationModeFactory.atLeast;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 @RunWith(MockitoJUnitRunner.class)
-public class RedisTaskSchedulerTest {
+@SuppressWarnings("unchecked")
+public class TaskSchedulerTest {
 
     private static final int MAX_RETRIES = 3;
 
-    @InjectMocks
-    private RedisTaskSchedulerImpl scheduler = new RedisTaskSchedulerImpl();
     @Mock
-    private RedisTemplate<String, String> redisTemplate;
+    private RedisDriver driver;
+
+    private RedisTaskScheduler scheduler;
+
 
     @Before
     public void setUp() {
+        scheduler = new RedisTaskScheduler(driver, taskId -> {});
         scheduler.setPollingDelayMillis(50);
         scheduler.setMaxRetriesOnConnectionFailure(MAX_RETRIES);
     }
@@ -42,31 +46,23 @@ public class RedisTaskSchedulerTest {
 
     @Test
     public void canRetryAfterRedisConnectionError() throws InterruptedException {
+        doThrow(RedisConnectionFailureException.class).when(driver).fetch(any(Function.class));
 
-        // given
-        doThrow(RedisConnectionFailureException.class).when(redisTemplate).execute(any(SessionCallback.class));
-
-        // execute
         scheduler.initialize();
         Thread.sleep(500);
 
-        // assert
-        verify(redisTemplate, times(MAX_RETRIES)).execute(any(SessionCallback.class));
+        verify(driver, times(MAX_RETRIES)).fetch(any(Function.class));
     }
 
     @Test
     public void canRecoverAfterSingleConnectionError() throws InterruptedException {
-
-        // given
-        when(redisTemplate.execute(any(SessionCallback.class)))
+        when(driver.fetch(any(Function.class)))
                 .thenThrow(RedisConnectionFailureException.class)
                 .thenReturn(true);
 
-        // execute
         scheduler.initialize();
         Thread.sleep(500);
 
-        // assert
-        verify(redisTemplate, atLeast(MAX_RETRIES + 1)).execute(any(SessionCallback.class));
+        verify(driver, atLeast(MAX_RETRIES + 1)).fetch( any(Function.class));
     }
 }

@@ -1,6 +1,5 @@
-package com.github.davidmarquis.redisscheduler.impl;
+package com.github.davidmarquis.redisscheduler.lib;
 
-import java.text.ParseException;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.TimeUnit;
@@ -15,9 +14,9 @@ public class StubbedClock extends Clock {
         return now;
     }
 
-    public void is(String dateTimeStr) throws ParseException {
+    public void is(String dateTimeStr) {
         LocalDateTime time = LocalDateTime.parse(dateTimeStr, FORMATTER);
-        stubTime(time.toInstant(ZoneOffset.UTC));
+        stubTime(time.atZone(ZoneId.systemDefault()).toInstant());
     }
 
     public void fastForward(int period, TimeUnit unit) {
