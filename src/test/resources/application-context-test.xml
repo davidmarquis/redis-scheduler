@@ -31,7 +31,7 @@
 
     <bean id="scheduler" class="com.github.davidmarquis.redisscheduler.RedisTaskScheduler" >
         <constructor-arg name="driver" ref="springTemplateDriver"/>
-        <constructor-arg name="taskTriggerListener" ref="triggerListener"/>
+        <constructor-arg name="listener" ref="triggerListener"/>
         <property name="clock" ref="stubbedClock"/>
         <property name="pollingDelayMillis" value="50"/>  <!-- Speeds up polling for tests so that they run quicker. -->
     </bean>
