@@ -1,5 +1,6 @@
 package com.github.davidmarquis.redisscheduler;
 
+import java.io.Closeable;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Calendar;
@@ -7,7 +8,7 @@ import java.util.Calendar;
 /**
  * Schedules arbitrary tasks in the future.
  */
-public interface TaskScheduler {
+public interface TaskScheduler extends Closeable {
     /**
      * Runs a task immediately.
      * @param taskId an arbitrary task identifier. That same identifier will be used in TaskTriggerListener callback

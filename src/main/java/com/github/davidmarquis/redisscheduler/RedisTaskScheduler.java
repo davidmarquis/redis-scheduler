@@ -2,7 +2,6 @@ package com.github.davidmarquis.redisscheduler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.redis.RedisConnectionFailureException;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -19,7 +18,7 @@ public class RedisTaskScheduler implements TaskScheduler {
 
     private Clock clock = Clock.systemDefaultZone();
     private RedisDriver driver;
-    private TaskTriggerListener taskTriggerListener;
+    private TaskTriggerListener listener;
 
     /**
      * Delay between each polling of the scheduled tasks. The lower the value, the best precision in triggering tasks.
@@ -35,9 +34,9 @@ public class RedisTaskScheduler implements TaskScheduler {
     private PollingThread pollingThread;
     private int maxRetriesOnConnectionFailure = 1;
 
-    public RedisTaskScheduler(RedisDriver driver, TaskTriggerListener taskTriggerListener) {
+    public RedisTaskScheduler(RedisDriver driver, TaskTriggerListener listener) {
         this.driver = driver;
-        this.taskTriggerListener = taskTriggerListener;
+        this.listener = listener;
     }
 
     @SuppressWarnings("unchecked")
@@ -66,6 +65,14 @@ public class RedisTaskScheduler implements TaskScheduler {
         driver.execute(commands -> commands.remove(keyForScheduler()));
     }
 
+    @Override
+    @PreDestroy
+    public void close() {
+        if (pollingThread != null) {
+            pollingThread.requestStop();
+        }
+    }
+
     @PostConstruct
     public void initialize() {
         pollingThread = new PollingThread();
@@ -74,13 +81,6 @@ public class RedisTaskScheduler implements TaskScheduler {
         pollingThread.start();
 
         log.info(String.format("[%s] Started Redis Scheduler (polling freq: [%sms])", schedulerName, pollingDelayMillis));
-    }
-
-    @PreDestroy
-    public void destroy() {
-        if (pollingThread != null) {
-            pollingThread.requestStop();
-        }
     }
 
     public void setClock(Clock clock) {
@@ -140,7 +140,7 @@ public class RedisTaskScheduler implements TaskScheduler {
 
     private void tryTaskExecution(String task) {
         try {
-            taskTriggerListener.taskTriggered(task);
+            listener.taskTriggered(task);
         } catch (Exception e) {
             log.error(String.format("[%s] Error during execution of task [%s]", schedulerName, task), e);
         }
@@ -190,7 +190,7 @@ public class RedisTaskScheduler implements TaskScheduler {
                 }
 
                 resetRetriesAttemptsCount();
-            } catch (RedisConnectionFailureException e) {
+            } catch (RedisConnectException e) {
                 incrementRetriesAttemptsCount();
                 log.warn(String.format("Connection failure during scheduler polling (attempt %s/%s)", numRetriesAttempted, maxRetriesOnConnectionFailure));
             }

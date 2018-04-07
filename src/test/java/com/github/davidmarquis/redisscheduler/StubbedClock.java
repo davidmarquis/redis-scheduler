@@ -1,4 +1,4 @@
-package com.github.davidmarquis.redisscheduler.lib;
+package com.github.davidmarquis.redisscheduler;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;

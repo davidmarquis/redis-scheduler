@@ -1,4 +1,4 @@
-package com.github.davidmarquis.redisscheduler.lib;
+package com.github.davidmarquis.redisscheduler;
 
 import com.github.davidmarquis.redisscheduler.TaskTriggerListener;
 

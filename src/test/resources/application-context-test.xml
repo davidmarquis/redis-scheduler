@@ -21,11 +21,11 @@
         </property>
     </bean>
 
-    <bean id="triggerListener" class="com.github.davidmarquis.redisscheduler.lib.LatchedTriggerListener"/>
+    <bean id="triggerListener" class="com.github.davidmarquis.redisscheduler.LatchedTriggerListener"/>
 
-    <bean id="stubbedClock" class="com.github.davidmarquis.redisscheduler.lib.StubbedClock" />
+    <bean id="stubbedClock" class="com.github.davidmarquis.redisscheduler.StubbedClock" />
 
-    <bean id="springTemplateDriver" class="com.github.davidmarquis.redisscheduler.drivers.springdata.SpringTemplateDriver">
+    <bean id="springTemplateDriver" class="com.github.davidmarquis.redisscheduler.drivers.spring.RedisTemplateDriver">
         <constructor-arg name="redisTemplate" ref="redisTemplate"/>
     </bean>
 

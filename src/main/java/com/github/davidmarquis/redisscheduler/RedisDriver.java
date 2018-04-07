@@ -6,8 +6,14 @@ import java.util.function.Function;
 
 public interface RedisDriver {
 
-    void execute(Consumer<Commands> block);
     <T> T fetch(Function<Commands, T> block);
+
+    default void execute(Consumer<Commands> block) {
+        fetch((Function<Commands, Void>) commands -> {
+            block.accept(commands);
+            return null;
+        });
+    }
 
     interface Commands {
         void addToSetWithScore(String key, String taskId, long score);

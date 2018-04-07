@@ -6,17 +6,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.SessionCallback;
 
-import java.util.function.Consumer;
+import java.net.ConnectException;
 import java.util.function.Function;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.internal.verification.VerificationModeFactory.atLeast;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
@@ -41,12 +36,12 @@ public class TaskSchedulerTest {
 
     @After
     public void tearDown() {
-        scheduler.destroy();
+        scheduler.close();
     }
 
     @Test
     public void canRetryAfterRedisConnectionError() throws InterruptedException {
-        doThrow(RedisConnectionFailureException.class).when(driver).fetch(any(Function.class));
+        doThrow(RedisConnectException.class).when(driver).fetch(any(Function.class));
 
         scheduler.initialize();
         Thread.sleep(500);
@@ -57,7 +52,7 @@ public class TaskSchedulerTest {
     @Test
     public void canRecoverAfterSingleConnectionError() throws InterruptedException {
         when(driver.fetch(any(Function.class)))
-                .thenThrow(RedisConnectionFailureException.class)
+                .thenThrow(RedisConnectException.class)
                 .thenReturn(true);
 
         scheduler.initialize();

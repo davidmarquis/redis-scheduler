@@ -1,16 +1,8 @@
-package com.github.davidmarquis.redisscheduler.spring;
+package com.github.davidmarquis.redisscheduler;
 
-
-import com.github.davidmarquis.redisscheduler.TaskScheduler;
-import com.github.davidmarquis.redisscheduler.lib.LatchedTriggerListener;
-import com.github.davidmarquis.redisscheduler.lib.StubbedClock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.List;
 
@@ -19,21 +11,18 @@ import static java.util.concurrent.TimeUnit.HOURS;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("/application-context-test.xml")
-public class TaskSchedulerIntegrationTest {
+public abstract class AcceptanceTestBase {
 
-    @Autowired
-    private TaskScheduler scheduler;
+    protected TaskScheduler scheduler;
+    protected StubbedClock clock = new StubbedClock();
+    protected LatchedTriggerListener taskTriggerListener = new LatchedTriggerListener();
 
-    @Autowired
-    private StubbedClock clock;
-
-    @Autowired
-    private LatchedTriggerListener taskTriggerListener;
+    protected abstract void provideDependencies();
 
     @Before
     public void setup() {
+        provideDependencies();
+
         scheduler.unscheduleAllTasks();
         taskTriggerListener.reset();
 

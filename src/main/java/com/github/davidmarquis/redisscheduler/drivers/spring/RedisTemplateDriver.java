@@ -1,41 +1,41 @@
-package com.github.davidmarquis.redisscheduler.drivers.springdata;
+package com.github.davidmarquis.redisscheduler.drivers.spring;
 
+import com.github.davidmarquis.redisscheduler.RedisConnectException;
 import com.github.davidmarquis.redisscheduler.RedisDriver;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SessionCallback;
 
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class SpringTemplateDriver implements RedisDriver {
+/**
+ * Driver using Spring Data Redis
+ */
+public class RedisTemplateDriver implements RedisDriver {
 
     private RedisTemplate<String, String> redisTemplate;
 
-    public SpringTemplateDriver(RedisTemplate<String, String> redisTemplate) {
+    public RedisTemplateDriver(RedisTemplate<String, String> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
     @Override
-    public void execute(Consumer<Commands> block) {
-        fetch((Function<Commands, Void>) commands -> {
-            block.accept(commands);
-            return null;
-        });
-    }
-
-    @Override
     public <T> T fetch(Function<Commands, T> block) {
-        return redisTemplate.execute(new SessionCallback<T>() {
-            @Override
-            @SuppressWarnings("unchecked")
-            public <K, V> T execute(RedisOperations<K, V> operations) throws DataAccessException {
-                RedisConnectionCommands commands = new RedisConnectionCommands((RedisOperations<String, String>) operations);
-                return block.apply(commands);
-            }
-        });
+        try {
+            return redisTemplate.execute(new SessionCallback<T>() {
+                @Override
+                @SuppressWarnings("unchecked")
+                public <K, V> T execute(RedisOperations<K, V> operations) throws DataAccessException {
+                    RedisConnectionCommands commands = new RedisConnectionCommands((RedisOperations<String, String>) operations);
+                    return block.apply(commands);
+                }
+            });
+        } catch (RedisConnectionFailureException e) {
+            throw new RedisConnectException(e);
+        }
     }
 
     private static class RedisConnectionCommands implements Commands {
