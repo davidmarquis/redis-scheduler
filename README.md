@@ -1,18 +1,19 @@
 redis-scheduler
 ===============
 
-Distributed Scheduler using Redis (Java)
+Distributed Scheduler using Redis for Java applications.
 
 What is this?
 -------------
 
-redis-scheduler is a Java implementation of a distributed scheduler using Redis. It has the following features:
+`redis-scheduler` is a Java implementation of a distributed scheduler using Redis. It has the following features:
 
  - **Useable in a distributed environment**: Uses Redis transactions for effectively preventing a task to be run on
  multiple instances of the same application.
  - **Lightweight**: Uses a single thread.
  - **Configurable polling**: Polling delay can be configured to tweak execution precision (at the cost of performance)
- - **Multiple schedulers support**: You can create multiple schedulers in the same application if you need to.
+ - **Multiple schedulers support**: You can create multiple schedulers in the same logical application if you need to.
+ - **Support for multiple client libraries**: Drivers exist for [Jedis](https://github.com/xetorthio/jedis), [Lettuce](https://lettuce.io/) and [Spring Data's RedisTemplate](https://projects.spring.io/spring-data-redis/)
 
 High level concepts
 -------------------
@@ -44,14 +45,71 @@ Building the project
 Maven dependency
 ----------------
 
-This artifact is published on Maven Central since version 2.0.0:
+This artifact is published on Maven Central:
 
 ``` xml
     <dependency>
         <groupId>com.github.davidmarquis</groupId>
         <artifactId>redis-scheduler</artifactId>
-        <version>2.0.0</version>
+        <version>3.0.0</version>
     </dependency>
+```
+
+You'll need to add specific dependencies to use the different available drivers:
+
+To use with Lettuce:
+
+``` xml
+    <dependency>
+        <groupId>io.lettuce</groupId>
+        <artifactId>lettuce-core</artifactId>
+        <version>5.0.3.RELEASE</version>
+    </dependency>
+```
+
+To use with Jedis:
+
+``` xml
+    <dependency>
+        <groupId>redis.clients</groupId>
+        <artifactId>jedis</artifactId>
+        <version>2.9.0</version>
+    </dependency>
+```
+
+To use with Spring Data Redis:
+
+``` xml
+    <dependency>
+        <groupId>org.springframework.data</groupId>
+        <artifactId>spring-data-redis</artifactId>
+        <version>1.8.11.RELEASE</version>
+    </dependency>
+```
+
+
+Usage with Lettuce
+------------------
+
+The scheduler must be instantiated with the `LettuceDriver`:
+
+``` java
+RedisClient client = RedisClient.create(RedisURI.create("localhost", 6379));
+RedisTaskScheduler scheduler = new RedisTaskScheduler(new LettuceDriver(client), new YourTaskTriggerListener());
+
+scheduler.start();
+```
+
+Usage with Jedis
+----------------
+
+The scheduler must be instantiated with the `JedisDriver`:
+
+``` java
+JedisPool pool = new JedisPool("localhost", 6379);
+RedisTaskScheduler scheduler = new RedisTaskScheduler(new JedisDriver(pool), new YourTaskTriggerListener());
+
+scheduler.start();
 ```
 
 Usage with Spring
@@ -60,7 +118,7 @@ Usage with Spring
 Note: the examples below assume you're using Spring's autowiring features.
 
 First declare the base beans for Redis connectivity (if not already done in your project). This part can be different
-for your project. `redis-scheduler` only needs a functional RedisTemplate instance to work correctly.
+for your project.
 
 ``` xml
     <bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
@@ -74,34 +132,32 @@ for your project. `redis-scheduler` only needs a functional RedisTemplate instan
             <bean class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
         </property>
     </bean>
+
+    <bean id="springTemplateDriver" class="com.github.davidmarquis.redisscheduler.drivers.spring.RedisTemplateDriver">
+        <constructor-arg name="redisTemplate" ref="redisTemplate"/>
+    </bean>
 ```
 
 Finally, declare the scheduler instance:
 
 ``` xml
-    <bean id="scheduler" class="com.github.davidmarquis.redisscheduler.impl.RedisTaskSchedulerImpl">
-        <property name="redisTemplate" ref="redisTemplate"/>
-        <property name="taskTriggerListener">
+    <bean id="scheduler" class="com.github.davidmarquis.redisscheduler.RedisTaskScheduler">
+        <constructor-arg name="driver" ref="springTemplateDriver"/>
+        <constructor-arg name="listener">
             <bean class="your.own.implementation.of.TaskTriggerListener"/>
-        </property>
+        </constructor-arg>
     </bean>
 ```
 
-As noted above, `RedisTaskSchedulerImpl` expects an implementation of the `TaskTriggerListener` interface
-to notify your code when a task is due for execution. You must implement this interface yourself.
+As noted above, `RedisTaskScheduler` expects an implementation of the `TaskTriggerListener` interface to notify your code when a task is due for execution. You must implement this interface yourself.
 
-See the the test Spring context in `test/resources/application-context-test.xml` for a complete example of the setup.
+See the the test Spring context in `test/resources/application-context-test.xml` for a complete working example of the setup.
 
 
 Scheduling a task in the future
 -------------------------------
 
 ``` java
-    @Autowired
-    private RedisTaskScheduler scheduler;
-
-    ...
-
     scheduler.schedule("mytask", new GregorianCalendar(2015, Calendar.JANUARY, 1, 4, 45, 0));
 ```
 
@@ -121,11 +177,19 @@ public class MyTaskTriggerListener implements TaskTriggerListener {
 Customizing polling delay
 ----------------------------------
 
-By default, polling delay is set to a few seconds (see implementation `RedisTaskSchedulerImpl` for actual value). If
-you need your tasks to be triggered with more precision, decrease the polling delay using the `pollingDelayMillis` attribute of `RedisTaskSchedulerImpl`:
+By default, polling delay is set to a few seconds (see implementation `RedisTaskScheduler` for actual value). If
+you need your tasks to be triggered with more precision, decrease the polling delay using the `pollingDelayMillis` attribute of `RedisTaskScheduler`:
+
+In Java:
+
+``` java
+scheduler.setPollingDelayMillis(500);
+```
+
+With Spring:
 
 ``` xml
-    <bean id="scheduler" class="com.github.davidmarquis.redisscheduler.impl.RedisTaskSchedulerImpl">
+    <bean id="scheduler" class="com.github.davidmarquis.redisscheduler.RedisTaskScheduler">
         <property name="pollingDelayMillis" value="500"/>
     </bean>
 ```
@@ -136,10 +200,18 @@ Try to find the best balance for your needs.
 Retry polling when a Redis connection error happens
 ---------------------------------------------------
 
-Retries can be configured using the `maxRetriesOnConnectionFailure` property on `RedisTaskSchedulerImpl`:
+Retries can be configured using the `maxRetriesOnConnectionFailure` property on `RedisTaskScheduler`:
+
+In Java:
+
+``` java
+scheduler.setMaxRetriesOnConnectionFailure(5);
+```
+
+With Spring:
 
 ``` xml
-    <bean id="scheduler" class="com.github.davidmarquis.redisscheduler.impl.RedisTaskSchedulerImpl">
+    <bean id="scheduler" class="com.github.davidmarquis.redisscheduler.RedisTaskScheduler">
         <property name="maxRetriesOnConnectionFailure" value="5"/>
     </bean>
 ```

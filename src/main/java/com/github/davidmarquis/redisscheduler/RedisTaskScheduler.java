@@ -63,12 +63,20 @@ public class RedisTaskScheduler implements TaskScheduler, TaskRunner {
         driver.execute(commands -> commands.remove(identity.key()));
     }
 
+    public void stop() {
+        close();
+    }
+
     @Override
     @PreDestroy
     public void close() {
         if (pollingThread != null) {
             pollingThread.requestStop();
         }
+    }
+
+    public void start() {
+        initialize();
     }
 
     @PostConstruct
