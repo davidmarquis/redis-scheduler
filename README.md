@@ -39,7 +39,7 @@ Building the project
 --------------------
 
 ``` bash
-    mvn package
+mvn package
 ```
 
 Maven dependency
@@ -48,43 +48,43 @@ Maven dependency
 This artifact is published on Maven Central:
 
 ``` xml
-    <dependency>
-        <groupId>com.github.davidmarquis</groupId>
-        <artifactId>redis-scheduler</artifactId>
-        <version>3.0.0</version>
-    </dependency>
+<dependency>
+    <groupId>com.github.davidmarquis</groupId>
+    <artifactId>redis-scheduler</artifactId>
+    <version>3.0.0</version>
+</dependency>
 ```
 
-You'll need to add specific dependencies to use the different available drivers:
+You'll need to add one of the specific dependencies to use the different available drivers:
 
 To use with Lettuce:
 
 ``` xml
-    <dependency>
-        <groupId>io.lettuce</groupId>
-        <artifactId>lettuce-core</artifactId>
-        <version>5.0.3.RELEASE</version>
-    </dependency>
+<dependency>
+    <groupId>io.lettuce</groupId>
+    <artifactId>lettuce-core</artifactId>
+    <version>5.0.3.RELEASE</version>
+</dependency>
 ```
 
 To use with Jedis:
 
 ``` xml
-    <dependency>
-        <groupId>redis.clients</groupId>
-        <artifactId>jedis</artifactId>
-        <version>2.9.0</version>
-    </dependency>
+<dependency>
+    <groupId>redis.clients</groupId>
+    <artifactId>jedis</artifactId>
+    <version>2.9.0</version>
+</dependency>
 ```
 
 To use with Spring Data Redis:
 
 ``` xml
-    <dependency>
-        <groupId>org.springframework.data</groupId>
-        <artifactId>spring-data-redis</artifactId>
-        <version>1.8.11.RELEASE</version>
-    </dependency>
+<dependency>
+    <groupId>org.springframework.data</groupId>
+    <artifactId>spring-data-redis</artifactId>
+    <version>1.8.11.RELEASE</version>
+</dependency>
 ```
 
 
@@ -121,32 +121,32 @@ First declare the base beans for Redis connectivity (if not already done in your
 for your project.
 
 ``` xml
-    <bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
-        <property name="hostName" value="localhost"/>
-        <property name="port" value="6379"/>
-    </bean>
+<bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+    <property name="hostName" value="localhost"/>
+    <property name="port" value="6379"/>
+</bean>
 
-    <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
-        <property name="connectionFactory" ref="jedisConnectionFactory"/>
-        <property name="keySerializer">
-            <bean class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
-        </property>
-    </bean>
+<bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+    <property name="connectionFactory" ref="jedisConnectionFactory"/>
+    <property name="keySerializer">
+        <bean class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+    </property>
+</bean>
 
-    <bean id="springTemplateDriver" class="com.github.davidmarquis.redisscheduler.drivers.spring.RedisTemplateDriver">
-        <constructor-arg name="redisTemplate" ref="redisTemplate"/>
-    </bean>
+<bean id="springTemplateDriver" class="com.github.davidmarquis.redisscheduler.drivers.spring.RedisTemplateDriver">
+    <constructor-arg name="redisTemplate" ref="redisTemplate"/>
+</bean>
 ```
 
 Finally, declare the scheduler instance:
 
 ``` xml
-    <bean id="scheduler" class="com.github.davidmarquis.redisscheduler.RedisTaskScheduler">
-        <constructor-arg name="driver" ref="springTemplateDriver"/>
-        <constructor-arg name="listener">
-            <bean class="your.own.implementation.of.TaskTriggerListener"/>
-        </constructor-arg>
-    </bean>
+<bean id="scheduler" class="com.github.davidmarquis.redisscheduler.RedisTaskScheduler">
+    <constructor-arg name="driver" ref="springTemplateDriver"/>
+    <constructor-arg name="listener">
+        <bean class="your.own.implementation.of.TaskTriggerListener"/>
+    </constructor-arg>
+</bean>
 ```
 
 As noted above, `RedisTaskScheduler` expects an implementation of the `TaskTriggerListener` interface to notify your code when a task is due for execution. You must implement this interface yourself.
@@ -158,7 +158,7 @@ Scheduling a task in the future
 -------------------------------
 
 ``` java
-    scheduler.schedule("mytask", new GregorianCalendar(2015, Calendar.JANUARY, 1, 4, 45, 0));
+scheduler.schedule("mytask", new GregorianCalendar(2015, Calendar.JANUARY, 1, 4, 45, 0));
 ```
 
 This would schedule a task with ID "mytask" to be run at 4:45AM on January 1st 2015.
@@ -189,9 +189,9 @@ scheduler.setPollingDelayMillis(500);
 With Spring:
 
 ``` xml
-    <bean id="scheduler" class="com.github.davidmarquis.redisscheduler.RedisTaskScheduler">
-        <property name="pollingDelayMillis" value="500"/>
-    </bean>
+<bean id="scheduler" class="com.github.davidmarquis.redisscheduler.RedisTaskScheduler">
+    <property name="pollingDelayMillis" value="500"/>
+</bean>
 ```
 
 Increasing polling delay comes with a cost: higher load on Redis and your connection.
@@ -211,9 +211,9 @@ scheduler.setMaxRetriesOnConnectionFailure(5);
 With Spring:
 
 ``` xml
-    <bean id="scheduler" class="com.github.davidmarquis.redisscheduler.RedisTaskScheduler">
-        <property name="maxRetriesOnConnectionFailure" value="5"/>
-    </bean>
+<bean id="scheduler" class="com.github.davidmarquis.redisscheduler.RedisTaskScheduler">
+    <property name="maxRetriesOnConnectionFailure" value="5"/>
+</bean>
 ```
 
 After the specified number of retries, the polling thread will stop and log an error.
