@@ -115,8 +115,6 @@ scheduler.start();
 Usage with Spring
 -----------------
 
-Note: the examples below assume you're using Spring's autowiring features.
-
 First declare the base beans for Redis connectivity (if not already done in your project). This part can be different
 for your project.
 
@@ -149,7 +147,7 @@ Finally, declare the scheduler instance:
 </bean>
 ```
 
-As noted above, `RedisTaskScheduler` expects an implementation of the `TaskTriggerListener` interface to notify your code when a task is due for execution. You must implement this interface yourself.
+As noted above, `RedisTaskScheduler` expects an implementation of the `TaskTriggerListener` interface which it will notify when a task is due for execution. You must implement this interface yourself and provide it to the scheduler as a constructor argument.
 
 See the the test Spring context in `test/resources/application-context-test.xml` for a complete working example of the setup.
 
