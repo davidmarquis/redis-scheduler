@@ -1,25 +1,20 @@
 package com.github.davidmarquis.redisscheduler.lib;
 
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
+import org.junit.rules.ExternalResource;
 import redis.embedded.RedisServer;
 
-public class StartRedis implements TestRule {
-    @Override
-    public Statement apply(Statement base, Description description) {
-        return new Statement() {
-            @Override
-            public void evaluate() throws Throwable {
-                RedisServer server = new RedisServer();
-                server.start();
+public class StartRedis extends ExternalResource {
 
-                try {
-                    base.evaluate();
-                } finally {
-                    server.stop();
-                }
-            }
-        };
+    private RedisServer server;
+
+    @Override
+    protected void before() throws Throwable {
+        server = new RedisServer();
+        server.start();
+    }
+
+    @Override
+    protected void after() {
+        server.stop();
     }
 }
