@@ -6,8 +6,6 @@
 
     <context:property-placeholder location="test-config.properties"/>
 
-    <bean id="redis" class="redis.embedded.RedisServer" init-method="start" destroy-method="stop"/>
-
     <bean id="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
         <property name="hostName" value="localhost"/>
         <property name="port" value="6379"/>
@@ -21,9 +19,9 @@
         </property>
     </bean>
 
-    <bean id="triggerListener" class="com.github.davidmarquis.redisscheduler.LatchedTriggerListener"/>
+    <bean id="triggerListener" class="com.github.davidmarquis.redisscheduler.lib.LatchedTriggerListener"/>
 
-    <bean id="stubbedClock" class="com.github.davidmarquis.redisscheduler.StubbedClock" />
+    <bean id="stubbedClock" class="com.github.davidmarquis.redisscheduler.lib.StubbedClock" />
 
     <bean id="springTemplateDriver" class="com.github.davidmarquis.redisscheduler.drivers.spring.RedisTemplateDriver">
         <constructor-arg name="redisTemplate" ref="redisTemplate"/>

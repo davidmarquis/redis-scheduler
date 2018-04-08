@@ -1,7 +1,11 @@
 package com.github.davidmarquis.redisscheduler;
 
+import com.github.davidmarquis.redisscheduler.lib.LatchedTriggerListener;
+import com.github.davidmarquis.redisscheduler.lib.StartRedis;
+import com.github.davidmarquis.redisscheduler.lib.StubbedClock;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.util.List;
@@ -13,15 +17,19 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public abstract class AcceptanceTestSuite {
 
+    @ClassRule
+    public static StartRedis redis = new StartRedis();
+
+    // Actors:
     protected TaskScheduler scheduler;
     protected StubbedClock clock = new StubbedClock();
     protected LatchedTriggerListener taskTriggerListener = new LatchedTriggerListener();
 
-    protected abstract void provideDependencies();
+    protected abstract void provideActors();
 
     @Before
     public void setup() {
-        provideDependencies();
+        provideActors();
 
         scheduler.unscheduleAllTasks();
         taskTriggerListener.reset();

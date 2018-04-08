@@ -1,4 +1,4 @@
-package com.github.davidmarquis.redisscheduler.lettuce;
+package com.github.davidmarquis.redisscheduler;
 
 import com.github.davidmarquis.redisscheduler.AcceptanceTestSuite;
 import com.github.davidmarquis.redisscheduler.RedisTaskScheduler;
@@ -7,8 +7,6 @@ import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import redis.embedded.RedisServer;
 
 import java.io.IOException;
 
@@ -16,22 +14,14 @@ public class LettuceIntegrationTest extends AcceptanceTestSuite {
 
     private static final RedisClient client = RedisClient.create(RedisURI.create("localhost", 6379));
 
-    private static RedisServer server;
-
-    @BeforeClass
-    public static void startRedis() throws IOException {
-        server = new RedisServer();
-        server.start();
-    }
-
     @Override
-    protected void provideDependencies() {
-        RedisTaskScheduler redisScheduler = new RedisTaskScheduler(new LettuceDriver(client), taskTriggerListener);
-        redisScheduler.setClock(clock);
-        redisScheduler.setPollingDelayMillis(50);
-        redisScheduler.initialize();
+    protected void provideActors() {
+        RedisTaskScheduler scheduler = new RedisTaskScheduler(new LettuceDriver(client), taskTriggerListener);
+        scheduler.setClock(clock);
+        scheduler.setPollingDelayMillis(50);
+        scheduler.initialize();
 
-        scheduler = redisScheduler;
+        this.scheduler = scheduler;
     }
 
     @After
@@ -42,6 +32,5 @@ public class LettuceIntegrationTest extends AcceptanceTestSuite {
     @AfterClass
     public static void shutdown() {
         client.shutdown();
-        server.stop();
     }
 }

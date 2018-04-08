@@ -1,10 +1,10 @@
-package com.github.davidmarquis.redisscheduler.spring;
+package com.github.davidmarquis.redisscheduler;
 
 
 import com.github.davidmarquis.redisscheduler.AcceptanceTestSuite;
 import com.github.davidmarquis.redisscheduler.TaskScheduler;
-import com.github.davidmarquis.redisscheduler.LatchedTriggerListener;
-import com.github.davidmarquis.redisscheduler.StubbedClock;
+import com.github.davidmarquis.redisscheduler.lib.LatchedTriggerListener;
+import com.github.davidmarquis.redisscheduler.lib.StubbedClock;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -19,7 +19,7 @@ public class SpringIntegrationTest extends AcceptanceTestSuite {
     private ApplicationContext ctx;
 
     @Override
-    protected void provideDependencies() {
+    protected void provideActors() {
         scheduler = ctx.getBean(TaskScheduler.class);
         clock = ctx.getBean(StubbedClock.class);
         taskTriggerListener = ctx.getBean(LatchedTriggerListener.class);
