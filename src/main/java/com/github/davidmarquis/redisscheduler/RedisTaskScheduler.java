@@ -19,16 +19,9 @@ public class RedisTaskScheduler implements TaskScheduler, TaskRunner {
     private RedisDriver driver;
     private TaskTriggerListener listener;
 
-    /**
-     * If you need multiple schedulers for the same application, customize their names to differentiate in logs.
-     */
     private SchedulerIdentity identity = SchedulerIdentity.of(DEFAULT_SCHEDULER_NAME);
 
     private PollingThread pollingThread;
-    /**
-     * Delay between each polling of the scheduled tasks. The lower the value, the best precision in triggering tasks.
-     * However, the lower the value, the higher the load on Redis.
-     */
     private int pollingDelayMillis = 10000;
     private int maxRetriesOnConnectionFailure = 1;
 
@@ -37,12 +30,10 @@ public class RedisTaskScheduler implements TaskScheduler, TaskRunner {
         this.listener = listener;
     }
 
-    @SuppressWarnings("unchecked")
     public void runNow(String taskId) {
         scheduleAt(taskId, clock.instant());
     }
 
-    @SuppressWarnings("unchecked")
     public void scheduleAt(String taskId, Instant triggerTime) {
         if (triggerTime == null) {
             throw new IllegalArgumentException("A trigger time must be provided.");
@@ -52,15 +43,23 @@ public class RedisTaskScheduler implements TaskScheduler, TaskRunner {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void unschedule(String taskId) {
         driver.execute(commands -> commands.removeFromSet(identity.key(), taskId));
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void unscheduleAllTasks() {
         driver.execute(commands -> commands.remove(identity.key()));
+    }
+
+    @PostConstruct
+    public void start() {
+        pollingThread = new PollingThread(this, maxRetriesOnConnectionFailure, pollingDelayMillis);
+        pollingThread.setName(identity.name() + "-polling");
+
+        pollingThread.start();
+
+        log.info(String.format("[%s] Started Redis Scheduler (polling freq: [%sms])", identity.name(), pollingDelayMillis));
     }
 
     public void stop() {
@@ -75,28 +74,21 @@ public class RedisTaskScheduler implements TaskScheduler, TaskRunner {
         }
     }
 
-    public void start() {
-        initialize();
-    }
-
-    @PostConstruct
-    public void initialize() {
-        pollingThread = new PollingThread(this, maxRetriesOnConnectionFailure, pollingDelayMillis);
-        pollingThread.setName(identity.name() + "-polling");
-
-        pollingThread.start();
-
-        log.info(String.format("[%s] Started Redis Scheduler (polling freq: [%sms])", identity.name(), pollingDelayMillis));
-    }
-
     public void setClock(Clock clock) {
         this.clock = clock;
     }
 
+    /**
+     * If multiple schedulers are needed for the same application, customize their names to differentiate them in logs.
+     */
     public void setSchedulerName(String schedulerName) {
         this.identity = SchedulerIdentity.of(schedulerName);
     }
 
+    /**
+     * Delay between polling of the scheduled tasks. The lower the value, the best precision in triggering tasks.
+     * However, the lower the value, the higher the load on Redis.
+     */
     public void setPollingDelayMillis(int pollingDelayMillis) {
         this.pollingDelayMillis = pollingDelayMillis;
     }

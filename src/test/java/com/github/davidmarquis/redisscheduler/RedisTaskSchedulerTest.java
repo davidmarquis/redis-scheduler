@@ -7,7 +7,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.net.ConnectException;
 import java.util.function.Function;
 
 import static org.mockito.Matchers.any;
@@ -17,7 +16,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 @RunWith(MockitoJUnitRunner.class)
 @SuppressWarnings("unchecked")
-public class TaskSchedulerTest {
+public class RedisTaskSchedulerTest {
 
     private static final int MAX_RETRIES = 3;
 
@@ -25,7 +24,6 @@ public class TaskSchedulerTest {
     private RedisDriver driver;
 
     private RedisTaskScheduler scheduler;
-
 
     @Before
     public void setUp() {
@@ -36,14 +34,14 @@ public class TaskSchedulerTest {
 
     @After
     public void tearDown() {
-        scheduler.close();
+        scheduler.stop();
     }
 
     @Test
     public void canRetryAfterRedisConnectionError() throws InterruptedException {
         doThrow(RedisConnectException.class).when(driver).fetch(any(Function.class));
 
-        scheduler.initialize();
+        scheduler.start();
         Thread.sleep(500);
 
         verify(driver, times(MAX_RETRIES)).fetch(any(Function.class));
@@ -55,7 +53,7 @@ public class TaskSchedulerTest {
                 .thenThrow(RedisConnectException.class)
                 .thenReturn(true);
 
-        scheduler.initialize();
+        scheduler.start();
         Thread.sleep(500);
 
         verify(driver, atLeast(MAX_RETRIES + 1)).fetch( any(Function.class));

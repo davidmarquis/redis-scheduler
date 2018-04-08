@@ -1,8 +1,6 @@
 package com.github.davidmarquis.redisscheduler;
 
 
-import com.github.davidmarquis.redisscheduler.AcceptanceTestSuite;
-import com.github.davidmarquis.redisscheduler.TaskScheduler;
 import com.github.davidmarquis.redisscheduler.lib.LatchedTriggerListener;
 import com.github.davidmarquis.redisscheduler.lib.StubbedClock;
 import org.junit.runner.RunWith;
@@ -20,7 +18,7 @@ public class SpringIntegrationTest extends AcceptanceTestSuite {
 
     @Override
     protected void provideActors() {
-        scheduler = ctx.getBean(TaskScheduler.class);
+        scheduler = ctx.getBean(RedisTaskScheduler.class);
         clock = ctx.getBean(StubbedClock.class);
         taskTriggerListener = ctx.getBean(LatchedTriggerListener.class);
     }

@@ -21,9 +21,9 @@ public abstract class AcceptanceTestSuite {
     public static StartRedis redis = new StartRedis();
 
     // Actors:
-    protected TaskScheduler scheduler;
-    protected StubbedClock clock = new StubbedClock();
-    protected LatchedTriggerListener taskTriggerListener = new LatchedTriggerListener();
+    RedisTaskScheduler scheduler;
+    StubbedClock clock = new StubbedClock();
+    LatchedTriggerListener taskTriggerListener = new LatchedTriggerListener();
 
     protected abstract void provideActors();
 

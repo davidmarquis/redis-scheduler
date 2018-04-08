@@ -1,14 +1,10 @@
 package com.github.davidmarquis.redisscheduler;
 
-import com.github.davidmarquis.redisscheduler.AcceptanceTestSuite;
-import com.github.davidmarquis.redisscheduler.RedisTaskScheduler;
 import com.github.davidmarquis.redisscheduler.drivers.lettuce.LettuceDriver;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import org.junit.After;
 import org.junit.AfterClass;
-
-import java.io.IOException;
 
 public class LettuceIntegrationTest extends AcceptanceTestSuite {
 
@@ -16,17 +12,16 @@ public class LettuceIntegrationTest extends AcceptanceTestSuite {
 
     @Override
     protected void provideActors() {
-        RedisTaskScheduler scheduler = new RedisTaskScheduler(new LettuceDriver(client), taskTriggerListener);
+        scheduler = new RedisTaskScheduler(new LettuceDriver(client), taskTriggerListener);
+        scheduler.setSchedulerName("lettuce-scheduler");
         scheduler.setClock(clock);
         scheduler.setPollingDelayMillis(50);
-        scheduler.initialize();
-
-        this.scheduler = scheduler;
+        scheduler.start();
     }
 
     @After
-    public void closeScheduler() throws IOException {
-        scheduler.close();
+    public void stopScheduler() {
+        scheduler.stop();
     }
 
     @AfterClass

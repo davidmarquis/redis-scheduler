@@ -1,13 +1,9 @@
 package com.github.davidmarquis.redisscheduler;
 
-import com.github.davidmarquis.redisscheduler.AcceptanceTestSuite;
-import com.github.davidmarquis.redisscheduler.RedisTaskScheduler;
 import com.github.davidmarquis.redisscheduler.drivers.jedis.JedisDriver;
 import org.junit.After;
 import org.junit.AfterClass;
 import redis.clients.jedis.JedisPool;
-
-import java.io.IOException;
 
 public class JedisIntegrationTest extends AcceptanceTestSuite {
 
@@ -15,17 +11,16 @@ public class JedisIntegrationTest extends AcceptanceTestSuite {
 
     @Override
     protected void provideActors() {
-        RedisTaskScheduler scheduler = new RedisTaskScheduler(new JedisDriver(pool), taskTriggerListener);
+        scheduler = new RedisTaskScheduler(new JedisDriver(pool), taskTriggerListener);
+        scheduler.setSchedulerName("jedis-scheduler");
         scheduler.setClock(clock);
         scheduler.setPollingDelayMillis(50);
-        scheduler.initialize();
-
-        this.scheduler = scheduler;
+        scheduler.start();
     }
 
     @After
-    public void closeScheduler() throws IOException {
-        scheduler.close();
+    public void stopScheduler() {
+        scheduler.stop();
     }
 
     @AfterClass

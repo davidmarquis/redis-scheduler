@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class LatchedTriggerListener implements TaskTriggerListener {
 
     private CountDownLatch latch;
-    private List<String> triggeredTasks = new ArrayList<String>();
+    private List<String> triggeredTasks = new ArrayList<>();
 
     @Override
     public void taskTriggered(String taskId) {

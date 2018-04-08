@@ -17,12 +17,19 @@ public interface RedisDriver {
 
     interface Commands {
         void addToSetWithScore(String key, String taskId, long score);
+
         void removeFromSet(String key, String taskId);
+
         void remove(String key);
+
         void watch(String key);
+
         void unwatch();
+
         void multi();
+
         boolean exec();
+
         Optional<String> firstByScore(String key, long minScore, long maxScore);
     }
 }
