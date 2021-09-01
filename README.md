@@ -2,6 +2,7 @@ redis-scheduler
 ===============
 
 Distributed Scheduler using Redis for Java applications.
+[fork redis-scheduler 3.0.0 by David Marquis](https://github.com/davidmarquis/redis-scheduler)
 
 What is this?
 -------------

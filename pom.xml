@@ -2,14 +2,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.github.davidmarquis</groupId>
+    <groupId>io.github.christianmelon</groupId>
     <artifactId>redis-scheduler</artifactId>
-    <version>3.0.1-SNAPSHOT</version>
+    <version>3.0.1</version>
     <packaging>jar</packaging>
 
     <name>redis-scheduler</name>
-    <description>Java implementation of a lightweight distributed task scheduler backed by Redis</description>
-    <url>https://github.com/davidmarquis/redis-scheduler</url>
+    <description>fork : Java implementation of a lightweight distributed task scheduler backed by Redis</description>
+    <url>https://github.com/christianmelon/redis-scheduler</url>
 
     <licenses>
         <license>
@@ -20,28 +20,28 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git@github.com:davidmarquis/redis-scheduler.git</connection>
-        <developerConnection>scm:git:git@github.com:davidmarquis/redis-scheduler.git</developerConnection>
-        <url>git@github.com:davidmarquis/redis-scheduler.git</url>
+        <connection>scm:git:git@github.com:christianmelon/redis-scheduler.git</connection>
+        <developerConnection>scm:git:git@github.com:christianmelon/redis-scheduler.git</developerConnection>
+        <url>git@github.com:christianmelon/redis-scheduler.git</url>
         <tag>HEAD</tag>
     </scm>
 
     <developers>
         <developer>
-            <id>davidmarquis</id>
-            <name>David Marquis</name>
-            <email>david@radiant3.ca</email>
+            <id>christianmelon</id>
+            <name>Christian Melon</name>
+            <email>christian.melon@orange.com</email>
         </developer>
     </developers>
 
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
         <repository>
             <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
 
@@ -226,7 +226,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <serverId>ossrh</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
