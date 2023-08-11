@@ -1,3 +1,8 @@
+# 3.0.2
+
+### features
+- update version to run with springboot 3.1
+
 # 3.0.1
 
 ### features

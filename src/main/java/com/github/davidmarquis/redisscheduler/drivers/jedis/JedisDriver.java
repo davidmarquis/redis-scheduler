@@ -79,7 +79,7 @@ public class JedisDriver implements RedisDriver {
             } finally {
                 try {
                     txn.close();
-                } catch (IOException e) {
+                } catch (Exception e) {
                     throw new RedisConnectException(e);
                 }
                 txn = null;
