@@ -2,6 +2,7 @@ package com.github.davidmarquis.redisscheduler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 
 class PollingThread extends Thread {
 
@@ -60,9 +61,10 @@ class PollingThread extends Thread {
             }
 
             resetRetriesAttemptsCount();
-        } catch (RedisConnectException e) {
+        } catch (RedisConnectException | JedisConnectionException e) {
             incrementRetriesAttemptsCount();
             log.warn(String.format("Connection failure during scheduler polling (attempt %s/%s)", numRetriesAttempted, maxRetriesOnConnectionFailure));
+            sleep(pollingDelayMillis);
         }
     }
 
